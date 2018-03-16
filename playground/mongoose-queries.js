@@ -11,7 +11,7 @@ const id = "5aabbdd46fc4ce29ec441a08";
 //invalid objectid.
 // const id = "5aabbdd46fc4ce29ec441a081111";
 
-// //isValid checks if the id is valid or not, alt to catch at the end.
+// //isValid checks if the id is valid or not, alt to catch() at the end.
 if(!ObjectID.isValid(id)) {
     console.log('ID not valid');
 }

@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 // require() returns an object in this case module.exports 
 // and we can use object dsestructing to 
 // store mongoose in the mongoose variable.
-const {mongoose} = require('./db/mongoose');
+const {mongoose, ObjectID} = require('./db/mongoose');
 const {Todo} = require('./models/todo');
 const {User} = require('./models/user');
 
@@ -43,6 +43,25 @@ app.get('/todos', (req, res) => {
         res.send({todos})
     }, (e) => {
         res.status(400).send(e);
+    });
+});
+
+//:id is a url parameter, it creates an id variable on the req object.
+app.get('/todos/:id', (req, res) => {
+    let id = req.params.id;
+    
+    if(!ObjectID.isValid(id)) {
+        return res.status(404).send();
+    }
+
+    Todo.findById(id).then((todo) => {
+        if(!todo) {
+            return res.status(404).send();
+        }
+
+        res.send({todo});
+    }).catch((e) => {
+        res.status(400).send();
     });
 });
 
