@@ -9,7 +9,9 @@ const {mongoose, ObjectID} = require('./db/mongoose');
 const {Todo} = require('./models/todo');
 const {User} = require('./models/user');
 
-let app =express();
+let app = express();
+// port for heroku
+const port = process.env.PORT || 3000;
 
 // express middelware.
 // for custom middleware, we pass a function to app.use()
@@ -65,8 +67,8 @@ app.get('/todos/:id', (req, res) => {
     });
 });
 
-app.listen(3000, () => {
-    console.log('Started on port 3000');
+app.listen(port, () => {
+    console.log(`Started up at port ${port}`);
 });
 
 module.exports = {app};
