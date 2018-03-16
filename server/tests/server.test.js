@@ -4,6 +4,17 @@ const request = require('supertest');
 const {app} = require('../server');
 const {Todo} = require('../models/todo');
 
+// we do this to ensure that beforeEach after removing
+// all todos, inserts these below todos with insertMany
+// which takes an array as an argument
+
+// adding seed data, so that our database is still predictable.
+const todos = [{
+    text: 'First test todo'
+}, {
+    text: 'Second test todo'
+}];
+
 // testing lifecycle method 'beforeEach' lets you run some code
 // before running any test cases below. This is done to setup the database
 // before testing cause currently there might be other todos
@@ -11,7 +22,11 @@ const {Todo} = require('../models/todo');
 // the test cases are executed only when we call done() at the end.
 beforeEach((done) => {
     //remove({}) with empty object removes all todos from mongodb.
-    Todo.remove({}).then(() => done());
+    //Todo.remove({}).then(() => done());
+    Todo.remove({}).then(() => {
+        //return is used, so we can tack on another then
+        return Todo.insertMany(todos);
+    }).then(() => done());
 });
 
 describe('POST /todos', () => {
@@ -38,7 +53,10 @@ describe('POST /todos', () => {
                     return done(err);
                 }
 
-                Todo.find().then((todos) => {
+                //find({text}) returns only one todo here
+                // because it only matches the text defined above
+                // so the length will still be 1
+                Todo.find({text}).then((todos) => {
                     // will pass here(refer beforeEach above)
                     expect(todos.length).toBe(1);
                     expect(todos[0].text).toBe(text);
@@ -60,9 +78,23 @@ describe('POST /todos', () => {
                 }
 
                 Todo.find().then((todos) => {
-                    expect(todos.length).toBe(0);
+                    // since this block doesn't add any new todos,
+                    // the length only remains 2 because the todos
+                    // array, we added up above only has two objects
+                    expect(todos.length).toBe(2);
                     done();
                 }).catch((e) => done(e));
             });
+    });
+});
+
+describe('GET /todos', () => {
+    it('should get all todos', (done) => {
+        request(app)
+            .get('/todos')
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todos.length).toBe(2);
+            }).end(done);
     });
 });
