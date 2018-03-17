@@ -61,6 +61,7 @@ app.get('/todos/:id', (req, res) => {
             return res.status(404).send();
         }
 
+        // equivalent to {todo: todo}
         res.send({todo});
     // Below is the reason for using if(!todo) above
     // catch is not redundant here, because it is 
@@ -87,6 +88,7 @@ app.delete('/todos/:id', (req, res) => {
             return res.status(404).send();
         }
 
+        // equivalent to {todo: todo}
         res.send({todo});
     }).catch((e) => res.status(400).send());
 });
