@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -91,6 +92,52 @@ app.delete('/todos/:id', (req, res) => {
         // equivalent to {todo: todo}
         res.send({todo});
     }).catch((e) => res.status(400).send());
+});
+
+// PATCH route helps to update a doc partially,
+// whereas put updates it completely. But these are just general
+// guidelines.
+
+app.patch('/todos/:id', (req, res) => {
+    let id = req.params.id;
+    //reason for lodash. We do this to ensure that
+    //the users do not update fields we don't want them to(like completedAt)
+    //or the fields that are just not there at all in monggose model.
+    // _.pick takes an object as an argument, pulls off only
+    //the items specified in the array in the second argument
+    // and stores it in body, which is an object.
+    let body = _.pick(req.body, ['text', 'completed']);
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send();
+    }
+
+    //if body.completed is a boolean and it is also true.
+    if (_.isBoolean(body.completed) && body.completed) {
+        //completedAt is set only when completed is true,
+        //else we set it to null.
+        body.completedAt = new Date().getTime();
+    } else {
+        body.completed = false;
+        //when we want to remove a value from db, we set it 
+        //equal to null. 
+        body.completedAt = null;
+    }
+
+    // similar to findOneAndUpdate in mongodb
+    // needs update validators like $set: {}
+    // we have already generated an object, body above for
+    // $set, new is equivalent to returnOriginal
+    // new:true returns the updated doc.
+    Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+        if (!todo) {
+            return res.status(404).send();
+        }
+
+        res.send({todo});
+    }).catch((e) => {
+        res.status(400).send();
+    });
 });
 
 app.listen(port, () => {
