@@ -62,9 +62,33 @@ app.get('/todos/:id', (req, res) => {
         }
 
         res.send({todo});
+    // Below is the reason for using if(!todo) above
+    // catch is not redundant here, because it is 
+    // capable of handling network connection errors or any other
+    // potential errors.
+    // and does not return an error, if the doc is simply unavailable.
     }).catch((e) => {
         res.status(400).send();
     });
+});
+
+app.delete('/todos/:id', (req, res) => {
+    let id = req.params.id;
+
+    if(!ObjectID.isValid(id)) {
+        return res.status(404).send();
+    }
+
+    // findByIdAndRemove still succeeds(returns null) 
+    // even if there is no doc(todo)
+    // that's why we check with if(!todo).
+    Todo.findByIdAndRemove(id).then((todo) => {
+        if(!todo) {
+            return res.status(404).send();
+        }
+
+        res.send({todo});
+    }).catch((e) => res.status(400).send());
 });
 
 app.listen(port, () => {
