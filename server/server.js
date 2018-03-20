@@ -27,6 +27,10 @@ app.post('/todos', (req, res) => {
     // body here comes from bodyParser.json()
     // if it's not used, this returns undefined.
     // console.log(req.body);
+    // we can insead use _.pick() to pick off the properties we need
+    // inside todo instance
+    // let body = _.pick(req.body, ['text]) //body is an object
+    // let todo =  new Todo(body) //better
     let todo = new Todo({
         // req.body.text is here we set it in postman.
         text: req.body.text
@@ -139,6 +143,29 @@ app.patch('/todos/:id', (req, res) => {
         res.send({todo});
     }).catch((e) => {
         res.status(400).send();
+    });
+});
+
+app.post('/users', (req, res) => {
+    //body is an object
+    let body = _.pick(req.body, ['email', 'password']); 
+
+    //validation will fail if email or password not provided, so no need to
+    //create new object. Just pass in body.
+    let user = new User(body);
+    
+    //saves the doc the first time with the body
+    user.save().then(() => {
+        //generates token in user.js, and again saves the doc(2nd time)with that token(go to user.js) and returns 
+        // the token here, so we can tack on 'then' 
+        return user.generateAuthToken();
+    }).then((token) => {
+        // the user here is the instance created above with new User(body)
+        // prefixing x in header means we create a custom header, not necessarily the one 
+        //http supports(since we use jwt).
+        res.header('x-auth', token).send(user);
+    }).catch((e) => {
+        res.status(400).send(e);
     });
 });
 
